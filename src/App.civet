@@ -1,0 +1,339 @@
+"civet coffeeCompat -coffeeDo -coffeeJSX solid"
+{ createComputed, createEffect, createSignal, onMount, For, Setter, Show } from 'solid-js'
+{ createStore, reconcile } from 'solid-js/store'
+
+interface Prototype
+  name: string
+  url: string
+  width: number
+  height: number
+  scale?: number
+
+prototypes: Prototype[] := import.meta.compileTime './images.ts'
+
+prototypeByName := new Map<string,Prototype> (
+  for prototype in prototypes
+    [prototype.name, prototype] as const
+)
+
+interface Character extends Prototype
+  i: number
+  x: number
+  y: number
+  z: number
+  flip: boolean
+  vflip?: boolean
+  blur?: number
+  hidden?: boolean
+
+function random(min: number, max: number): number
+  min + Math.random() * (max - min)
+function randomBool
+  Boolean Math.floor 2*Math.random()
+
+function svgPoint(svg: SVGSVGElement, e: PointerEvent, matrix: SVGGraphicsElement | SVGMatrix = svg): SVGPoint
+  if matrix.getScreenCTM?
+    matrix = matrix.getScreenCTM()!.inverse()
+  pt = svg.createSVGPoint()
+  pt.x = e.clientX
+  pt.y = e.clientY
+  pt.matrixTransform (matrix as SVGMatrix)
+
+interface Parameters
+  // random layout
+  frequency: Record<string,number>
+  zMin: number
+  blur: boolean
+  boxWidth: number
+  boxHeight: number
+  number: number
+  maxHeight: number
+  flip: boolean
+  uneven: number
+  right: boolean
+
+function randomLayout(params: Parameters): Character[]
+  choose := []
+  for name of params.frequency
+    freq := params.frequency[name]
+    choose.push name for i in [0...freq]
+  return [] unless choose.length
+  zMin := params.zMin / 100
+  for i in [0...params.number]
+    name := choose[Math.floor Math.random() * choose.length]
+    prototype := prototypeByName.get(name)!
+    zFrac := Math.random() ** 3
+    z := zFrac ** 0.5 * (1 - zMin) + zMin
+    height .= params.boxHeight * params.maxHeight/100
+    height *= z
+    width := height * prototype.width / prototype.height
+    yMax := params.boxHeight - height
+    y .= zFrac * yMax
+    if prototype.scale?  # align bottoms
+      y += (1 - prototype.scale) * height
+      height *= prototype.scale
+    x .= Math.random()
+    x **= params.uneven
+    x = 1 - x if params.right
+    x *= (params.boxWidth - width)
+    {...prototype, i, x, y, z, width, height,
+    flip: randomBool()
+    blur: (1-zFrac**0.5) * 0.5
+    }
+
+function depthOrdering(chars: Character[]): Character[]
+  chars.sort (a, b) => a.z - b.z
+  char.i = i for char, i in chars
+  chars
+
+export function App
+  [params, setParams] := createStore<Parameters> {
+    frequency: Object.fromEntries(
+      for prototype in prototypes
+        [prototype.name, 1] as const
+    )
+    zMin: 10
+    blur: false
+    boxWidth: 400
+    boxHeight: 200
+    number: 500
+    maxHeight: 75
+    flip: false
+    uneven: 1
+    right: false
+  }
+
+  [characters, setCharacters] := createStore<Character[]>([])
+  function randomize
+    chars .= randomLayout params
+    chars = depthOrdering chars  # resets i too
+    setCharacters reconcile chars
+  onMount randomize
+
+  function inputValue(input: HTMLInputElement)
+    switch input.type
+      when 'range', 'number'
+        input.valueAsNumber
+      when 'checkbox'
+        input.checked
+      else
+        input.value
+  function onInput(param: keyof Parameters)
+    (e: Event) =>
+      target := e.currentTarget as HTMLInputElement
+      setParams param, (inputValue target) as number | boolean
+  function onChange
+    randomize()
+
+  drags: Record<number, {
+    i: number  // index of character
+    dragOrigin: {x: number, y: number}  // pointerdown location
+    start: {x: number, y: number}   // original location of
+  }> := []
+  lastMouse := {x: -1, y: -1}
+  function onPointerMove(e: PointerEvent)
+    lastMouse.x = e.clientX
+    lastMouse.y = e.clientY
+    return unless drags[e.pointerId]?
+    {i, start, dragOrigin} := drags[e.pointerId]
+    dragLocation := svgPoint svg, e
+    setCharacters i,
+      x: start.x + dragLocation.x - dragOrigin.x
+      y: start.y + dragLocation.y - dragOrigin.y
+  function onPointerUp(e: PointerEvent)
+    delete drags[e.pointerId]
+
+  function toggleFrequency(name: string, e: MouseEvent)
+    freq .= params.frequency[name]
+    if freq
+      freq = 0
+    else
+      freq = 1
+    setParams 'frequency', name, freq
+    onChange()
+  function incrementFrequency(name: string, e: MouseEvent)
+    e.preventDefault()
+    freq .= params.frequency[name]
+    freq++
+    setParams 'frequency', name, freq
+    onChange()
+  function uniformFrequency(freq: number)
+    setParams 'frequency', Object.fromEntries(
+      for prototype in prototypes
+        [prototype.name, freq] as const
+    )
+    onChange()
+
+  function findCharacter: number | undefined
+    elt := document.elementFromPoint lastMouse.x, lastMouse.y
+    return unless elt?
+    iString := (elt as any)?.dataset?.i as string | undefined
+    return unless iString?
+    parseInt iString, 10
+  onMount =>
+    window.addEventListener 'keydown', (e: KeyboardEvent) =>
+      switch e.key
+        when 'r', 'R'
+          randomize()
+        when 'd', 'D', 'Delete', 'Backspace'
+          i := findCharacter()
+          setCharacters i, "hidden", !& if i?
+        when 'f', 'F'
+          i := findCharacter()
+          setCharacters i, "flip", !& if i?
+        when 'v', 'V'
+          i := findCharacter()
+          setCharacters i, "vflip", !& if i?
+
+  function viewBox
+    "0 0 #{params.boxWidth} #{params.boxHeight}"
+  function writeSVG
+    blurs: string[] := []
+    out = svg.outerHTML
+    .replace /^<svg/, """
+      <?xml version="1.0" encoding="utf-8"?>
+      <svg xmlns="http://www.w3.org/2000/svg"
+       xmlns:xlink="http://www.w3.org/1999/xlink"
+
+    """
+    .replace /\bhref=/g, 'xlink:href='
+    .replace /\bstyle="filter:([^"]*)"/g, (filter) ->
+      if blur = filter.match /blur\(([^()]+)px\)/
+        blurs.push blur[1]
+        "style=\"filter:url(#blur#{blurs.length-1})\""
+      else
+        console.warn "Unrecognized filter: #{filter}"
+        ''
+    filters = ''
+    for blur, blurIndex in blurs
+      filters += """
+        <filter id="blur#{blurIndex}" x="0" y="0" width="100%" height="100%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="#{blur}"/>
+        </filter>
+
+      """
+    out = out.replace /<filter/, '\n' + filters + '$&' if filters
+    out
+  function writeJSON
+    JSON.stringify {params, characters}
+  function downloadFile(data: string, type: string, filename: string)
+    download.download = filename
+    download.href = url = URL.createObjectURL new Blob [data], {type}
+    download.click()
+    download.href = ''
+    URL.revokeObjectURL url
+  function downloadSVG
+    downloadFile writeSVG(), 'image/svg+xml', 'assemble.svg'
+  function downloadJSON
+    downloadFile writeJSON(), 'application/json', 'assemble.json'
+  function openJSON
+    return unless jsonInput.files?.length
+    file := new FileReader
+    file.onload = =>
+      data: {params: Parameters, characters: Character[]} := JSON.parse file.result as string
+      setParams data.params  // existing parameters act as defaults
+      setCharacters reconcile data.characters
+    file.readAsText jsonInput.files[0]
+
+  let svg: SVGSVGElement, download: HTMLAnchorElement, jsonInput: HTMLInputElement, path: SVGPathElement
+  <header>
+    <div .group>
+      <label>Random layout
+    <div .group>
+      <label>Min Z:
+      <input type="number" value=params.zMin onInput={onInput 'zMin'} {onChange}>
+      <input type="range" value=params.zMin onInput={onInput 'zMin'} {onChange} list="ticks">
+    <div .group>
+      <input type="checkbox" checked=params.blur onInput={onInput 'blur'}>
+      <label>Blur
+    <br>
+    <div .group>
+      <input type="number" value=params.boxWidth onInput={onInput 'boxWidth'} {onChange}>
+      &times;
+      <input type="number" value=params.boxHeight onInput={onInput 'boxHeight'} {onChange}>
+    <br>
+    <div .group>
+      <label>Characters:
+      <input type="number" value=params.number onInput={onInput 'number'} {onChange}>
+    <div .group>
+      <label>Max height (depth crush):
+      <input type="number" value=params.maxHeight onInput={onInput 'maxHeight'} {onChange}>
+      <input type="range" value=params.maxHeight onInput={onInput 'maxHeight'} {onChange} list="ticks">
+    <div .group>
+      <input type="checkbox" checked=params.flip onInput={onInput 'flip'}>
+      <label>Flip
+    <div .group>
+      <label>Unevenness:
+      <input type="number" value=params.uneven onInput={onInput 'uneven'} {onChange}>
+    <div .group>
+      <input type="checkbox" checked=params.right onInput={onInput 'right'} {onChange}>
+      <label>Right
+    <br>
+    <datalist #ticks>
+      <option value=0>
+      <option value=25>
+      <option value=50>
+      <option value=75>
+      <option value=100>
+    <div .group>
+      <button onClick={randomize}>Randomize
+    <div .group>
+      <button onClick={downloadSVG}>Download SVG
+    <div .group>
+      <button onClick={downloadJSON}>Download JSON
+    <div .group>
+      <input ref={jsonInput!} type="file" accept=".json"
+       style={display: 'none'} onInput={openJSON}>
+      <button onClick={=> jsonInput.click()}>Open JSON
+    <a .d-none ref={download!} style={display: 'none'}>
+  <svg ref={svg!} viewBox=viewBox()
+   onPointerMove=onPointerMove onPointerUp=onPointerUp>
+    <For each=characters>
+      (character) =>
+        function onPointerDown(e: PointerEvent)
+          drags[e.pointerId] =
+            i: character.i
+            dragOrigin: svgPoint svg, e
+            start: {x: character.x, y: character.y}
+          svg.setPointerCapture e.pointerId
+        function transform
+          let r: number
+          {x: characterX, y: characterY} = character
+          if boxFlip = params.flip
+            characterY = params.boxHeight - characterY
+          [
+            "translate(#{characterX} #{characterY})"
+            "translate(#{character.width/2} 0)"
+            if character.flip
+              "scale(-1 1)"
+            if boxFlip
+              "scale(1 -1)"
+            if character.vflip
+              "translate(0 #{character.height/2}) " +
+              "scale(1 -1) " +
+              "translate(0 #{-character.height/2})"
+            "translate(#{-character.width/2} 0)"
+          ]
+          .filter Boolean
+          .join ' '
+        function filter: string | undefined
+          filters = []
+          filters.push "blur(#{character.blur}px)" if params.blur and character.blur?
+          filters.join ' '
+        <image data-i=character.i href=character.url
+         width=character.width height=character.height
+         transform=transform()
+         style={filter: filter(), visibility: if character.hidden then 'hidden'}
+         onPointerDown=onPointerDown
+        >
+  <div .prototypes>
+    <For each={prototypes}>
+      (prototype) =>
+        <img .prototype
+         .{if params.frequency[prototype.name] then 'active'}
+         src={prototype.url} height={100 * (prototype.scale ?? 1)}
+         title={prototype.name} onClick={[toggleFrequency, prototype.name]}
+         onContextMenu={[incrementFrequency, prototype.name]}>
+        <span .freq>{params.frequency[prototype.name]}
+    <button onClick={=> uniformFrequency 1}>All
+    <button onClick={=> uniformFrequency 0}>None

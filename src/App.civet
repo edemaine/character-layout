@@ -1,20 +1,20 @@
-"civet coffeeCompat -coffeeDo -coffeeJSX solid"
+"civet coffeeComment coffeeEq coffeeInterpolation solid"
 { createComputed, createEffect, createSignal, onMount, For, Setter, Show } from 'solid-js'
 { createStore, reconcile } from 'solid-js/store'
+{ createDropzone } from '@soorria/solid-dropzone'
+import 'attr-accept'  // Vite doesn't convert to ESM otherwise
 
+// Prototype is an image that can be instantiated many times
 interface Prototype
   name: string
   url: string
   width: number
   height: number
   scale?: number
+  file?: File
 
-prototypes: Prototype[] := import.meta.compileTime './images.ts'
-
-prototypeByName := new Map<string,Prototype> (
-  for prototype in prototypes
-    [prototype.name, prototype] as const
-)
+// Mapping from name to Prototype
+[prototypes, setPrototypes] := createStore<Record<string, Prototype>> {}
 
 interface Character extends Prototype
   i: number
@@ -34,7 +34,7 @@ function randomBool
 function svgPoint(svg: SVGSVGElement, e: PointerEvent, matrix: SVGGraphicsElement | SVGMatrix = svg): SVGPoint
   if matrix.getScreenCTM?
     matrix = matrix.getScreenCTM()!.inverse()
-  pt = svg.createSVGPoint()
+  pt := svg.createSVGPoint()
   pt.x = e.clientX
   pt.y = e.clientY
   pt.matrixTransform (matrix as SVGMatrix)
@@ -54,14 +54,15 @@ interface Parameters
 
 function randomLayout(params: Parameters): Character[]
   choose := []
-  for name of params.frequency
-    freq := params.frequency[name]
-    choose.push name for i in [0...freq]
+  for [name, freq] of Object.entries params.frequency
+    // CIVET: want for name, freq in params.frequency
+    continue unless name in prototypes
+    choose.push name for i of [0...freq]
   return [] unless choose.length
   zMin := params.zMin / 100
-  for i in [0...params.number]
+  for i of [0...params.number]
     name := choose[Math.floor Math.random() * choose.length]
-    prototype := prototypeByName.get(name)!
+    prototype := prototypes[name]
     zFrac := Math.random() ** 3
     z := zFrac ** 0.5 * (1 - zMin) + zMin
     height .= params.boxHeight * params.maxHeight/100
@@ -83,20 +84,18 @@ function randomLayout(params: Parameters): Character[]
 
 function depthOrdering(chars: Character[]): Character[]
   chars.sort (a, b) => a.z - b.z
-  char.i = i for char, i in chars
+  chars[i].i = i for i of [0...chars.length]
+  // CIVET: want `for char, i of chars`
   chars
 
 export function App
   [params, setParams] := createStore<Parameters> {
-    frequency: Object.fromEntries(
-      for prototype in prototypes
-        [prototype.name, 1] as const
-    )
+    frequency: {}
     zMin: 10
     blur: false
     boxWidth: 400
     boxHeight: 200
-    number: 500
+    number: 100
     maxHeight: 75
     flip: false
     uneven: 1
@@ -144,6 +143,7 @@ export function App
     delete drags[e.pointerId]
 
   function toggleFrequency(name: string, e: MouseEvent)
+    e.stopPropagation()
     freq .= params.frequency[name]
     if freq
       freq = 0
@@ -159,8 +159,8 @@ export function App
     onChange()
   function uniformFrequency(freq: number)
     setParams 'frequency', Object.fromEntries(
-      for prototype in prototypes
-        [prototype.name, freq] as const
+      for name in prototypes
+        [name, freq] as const
     )
     onChange()
 
@@ -189,7 +189,7 @@ export function App
     "0 0 #{params.boxWidth} #{params.boxHeight}"
   function writeSVG
     blurs: string[] := []
-    out = svg.outerHTML
+    out .= svg.outerHTML
     .replace /^<svg/, """
       <?xml version="1.0" encoding="utf-8"?>
       <svg xmlns="http://www.w3.org/2000/svg"
@@ -198,14 +198,16 @@ export function App
     """
     .replace /\bhref=/g, 'xlink:href='
     .replace /\bstyle="filter:([^"]*)"/g, (filter) ->
-      if blur = filter.match /blur\(([^()]+)px\)/
+      if blur := filter.match /blur\(([^()]+)px\)/
         blurs.push blur[1]
         "style=\"filter:url(#blur#{blurs.length-1})\""
       else
         console.warn "Unrecognized filter: #{filter}"
         ''
-    filters = ''
-    for blur, blurIndex in blurs
+    filters .= ''
+    for blurIndex of [0...blurs.length]
+      blur := blurs[blurIndex]
+      // CIVET: want for blur, blurIndex of blurs
       filters += """
         <filter id="blur#{blurIndex}" x="0" y="0" width="100%" height="100%">
           <feGaussianBlur in="SourceGraphic" stdDeviation="#{blur}"/>
@@ -218,7 +220,8 @@ export function App
     JSON.stringify {params, characters}
   function downloadFile(data: string, type: string, filename: string)
     download.download = filename
-    download.href = url = URL.createObjectURL new Blob [data], {type}
+    url := URL.createObjectURL new Blob [data], {type}
+    download.href = url
     download.click()
     download.href = ''
     URL.revokeObjectURL url
@@ -234,8 +237,55 @@ export function App
       setParams data.params  // existing parameters act as defaults
       setCharacters reconcile data.characters
     file.readAsText jsonInput.files[0]
+  
+  dropzone := createDropzone
+    accept: 'image/*'
+    onDrop: (files: File[]) =>
+      let file: File
+      await.allSettled
+        for file of files
+          continue unless file.type.match /^image\//
+          new Promise (done) =>
+            url := URL.createObjectURL file
+            img := new Image
+            img.onload = =>
+              setPrototypes file.name,
+                {url, file, file.name, img.width, img.height}
+              unless params.frequency[file.name]?
+                setParams 'frequency', file.name, 1
+              done undefined
+            img.src = url
+          /*
+            reader := new FileReader
+            reader.onload = =>
+              url := reader.result as string
+            reader.readAsDataURL file
+          */
+      randomize()
 
   let svg: SVGSVGElement, download: HTMLAnchorElement, jsonInput: HTMLInputElement, path: SVGPathElement
+  <table style="width: 100%">
+    <tbody>
+      <tr>
+        <td style="text-align: left; vertical-align: middle">
+          <h1>Algorithmic Character Layout
+        <td style="text-align: right; vertical-align: middle">
+          <h2>by <a href="https://marielbass.com">Mariel&nbsp;Bass</a>, <a href="https://erikdemaine.org">Erik&nbsp;Demaine</a>, and <a href="http://martindemaine.org">Martin&nbsp;Demaine</a>
+  <div .prototypes ...dropzone.getRootProps()>
+    <input ...dropzone.getInputProps()>
+    <For each={Object.values prototypes}>
+      (prototype) =>
+        <img .prototype
+         .{if params.frequency[prototype.name] then 'active'}
+         src={prototype.url} height={100 * (prototype.scale ?? 1)}
+         title={prototype.name} onClick={[toggleFrequency, prototype.name]}
+         onContextMenu={[incrementFrequency, prototype.name]}>
+        <span .freq>{params.frequency[prototype.name]}
+    <Show when={Object.keys(prototypes).length} fallback={
+      <div .empty>To construct a layout, first drag your images here, or click to open file selector.
+    }>
+      <button onClick={=> uniformFrequency 1}>All
+      <button onClick={=> uniformFrequency 0}>None
   <header>
     <div .group>
       <label>Random layout
@@ -298,9 +348,9 @@ export function App
           svg.setPointerCapture e.pointerId
         function transform
           let r: number
-          {x: characterX, y: characterY} = character
-          if boxFlip = params.flip
-            characterY = params.boxHeight - characterY
+          {x: characterX, y: characterY} .= character
+          boxFlip := params.flip
+          characterY = params.boxHeight - characterY if boxFlip
           [
             "translate(#{characterX} #{characterY})"
             "translate(#{character.width/2} 0)"
@@ -317,7 +367,7 @@ export function App
           .filter Boolean
           .join ' '
         function filter: string | undefined
-          filters = []
+          filters .= []
           filters.push "blur(#{character.blur}px)" if params.blur and character.blur?
           filters.join ' '
         <image data-i=character.i href=character.url
@@ -326,14 +376,3 @@ export function App
          style={filter: filter(), visibility: if character.hidden then 'hidden'}
          onPointerDown=onPointerDown
         >
-  <div .prototypes>
-    <For each={prototypes}>
-      (prototype) =>
-        <img .prototype
-         .{if params.frequency[prototype.name] then 'active'}
-         src={prototype.url} height={100 * (prototype.scale ?? 1)}
-         title={prototype.name} onClick={[toggleFrequency, prototype.name]}
-         onContextMenu={[incrementFrequency, prototype.name]}>
-        <span .freq>{params.frequency[prototype.name]}
-    <button onClick={=> uniformFrequency 1}>All
-    <button onClick={=> uniformFrequency 0}>None

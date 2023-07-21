@@ -1,6 +1,8 @@
 body
   background: black
   color: white
+a
+  color: yellow
 
 input
   vertical-align: middle
@@ -26,7 +28,15 @@ image:hover
   filter: sepia(1) !important
 
 .prototypes
-  margin-top: 1rem
+  margin-bottom: 1rem
+  border: double 5px
+  padding: 0.75rem
+  background: #222
+  cursor: default
+  &:hover
+    background: #333
+  .empty
+    font-size: x-large
 .prototype
   margin: 0.1rem
   border: dashed orange

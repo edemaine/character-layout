@@ -2,7 +2,6 @@
 { createComputed, createEffect, createSignal, onMount, For, Setter, Show } from 'solid-js'
 { createStore, reconcile } from 'solid-js/store'
 { createDropzone } from '@soorria/solid-dropzone'
-import 'attr-accept'  // Vite doesn't convert to ESM otherwise
 
 // Prototype is an image that can be instantiated many times
 interface Prototype

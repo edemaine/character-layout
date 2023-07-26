@@ -380,3 +380,5 @@ export function App
            style={filter: filter(), visibility: if character.hidden then 'hidden'}
            onPointerDown=onPointerDown
           >
+    <footer>
+      <a href="https://github.com/edemaine/character-layout">Source code on GitHub</a>

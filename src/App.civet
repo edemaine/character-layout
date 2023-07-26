@@ -291,37 +291,36 @@ export function App
         <button onClick={(e) => e.stopPropagation(); uniformFrequency 0}>None
         <button onClick={(e) => e.stopPropagation(); setPrototypes reconcile {}}>Clear
     <header>
-      <div .group>
-        <label>Random layout
-      <div .group>
-        <label>Min Z:
-        <input type="number" value=params.zMin onInput={onInput 'zMin'} {onChange}>
-        <input type="range" value=params.zMin onInput={onInput 'zMin'} {onChange} list="ticks">
-      <div .group>
-        <input type="checkbox" checked=params.blur onInput={onInput 'blur'}>
-        <label>Blur
-      <br>
-      <div .group>
+      <label .group>
+        {'Characters: '}
+        <input type="number" value=params.number onInput={onInput 'number'} {onChange}>
+      <label .group>
+        {'Dimensions: '}
         <input type="number" value=params.boxWidth onInput={onInput 'boxWidth'} {onChange}>
         &times;
         <input type="number" value=params.boxHeight onInput={onInput 'boxHeight'} {onChange}>
+      <div .group>
+        <label>
+          {'Unevenness: '}
+          <input type="number" value=params.uneven onInput={onInput 'uneven'} {onChange}>
+        <label>
+          <input type="checkbox" checked=params.right onInput={onInput 'right'} {onChange}>
+          Right
+      <label .group>
+        <input type="checkbox" checked=params.flip onInput={onInput 'flip'}>
+        Flip
+      <label .group>
+        <input type="checkbox" checked=params.blur onInput={onInput 'blur'}>
+        Blur
       <br>
-      <div .group>
-        <label>Characters:
-        <input type="number" value=params.number onInput={onInput 'number'} {onChange}>
-      <div .group>
-        <label>Max height (depth crush):
+      <label .group>
+        {'Max height (camera angle): '}
         <input type="number" value=params.maxHeight onInput={onInput 'maxHeight'} {onChange}>
         <input type="range" value=params.maxHeight onInput={onInput 'maxHeight'} {onChange} list="ticks">
-      <div .group>
-        <input type="checkbox" checked=params.flip onInput={onInput 'flip'}>
-        <label>Flip
-      <div .group>
-        <label>Unevenness:
-        <input type="number" value=params.uneven onInput={onInput 'uneven'} {onChange}>
-      <div .group>
-        <input type="checkbox" checked=params.right onInput={onInput 'right'} {onChange}>
-        <label>Right
+      <label .group>
+        {'Min Z: '}
+        <input type="number" value=params.zMin onInput={onInput 'zMin'} {onChange}>
+        <input type="range" value=params.zMin onInput={onInput 'zMin'} {onChange} list="ticks">
       <br>
       <datalist #ticks>
         <option value=0>

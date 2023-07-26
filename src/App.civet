@@ -287,8 +287,9 @@ export function App
       <Show when={Object.keys(prototypes).length} fallback={
         <div .empty>To construct a layout, first drag your images here, or click to open file selector.
       }>
-        <button onClick={=> uniformFrequency 1}>All
-        <button onClick={=> uniformFrequency 0}>None
+        <button onClick={(e) => e.stopPropagation(); uniformFrequency 1}>All
+        <button onClick={(e) => e.stopPropagation(); uniformFrequency 0}>None
+        <button onClick={(e) => e.stopPropagation(); setPrototypes reconcile {}}>Clear
     <header>
       <div .group>
         <label>Random layout

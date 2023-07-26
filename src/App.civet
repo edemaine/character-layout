@@ -47,6 +47,8 @@ interface Parameters
   boxHeight: number
   number: number
   maxHeight: number
+  perspective: boolean
+  sort: boolean
   flip: boolean
   uneven: number
   right: boolean
@@ -63,12 +65,17 @@ function randomLayout(params: Parameters): Character[]
     name := choose[Math.floor Math.random() * choose.length]
     prototype := prototypes[name]
     zFrac := Math.random() ** 3
-    z := zFrac ** 0.5 * (1 - zMin) + zMin
+    z .= zFrac ** 0.5 * (1 - zMin) + zMin
     height .= params.boxHeight * params.maxHeight/100
-    height *= z
+    height *= z if params.perspective
     width := height * prototype.width / prototype.height
     yMax := params.boxHeight - height
-    y .= zFrac * yMax
+    y .=
+      if params.perspective
+        zFrac * yMax
+      else
+        Math.random() * yMax
+    z = y unless params.perspective
     if prototype.scale?  # align bottoms
       y += (1 - prototype.scale) * height
       height *= prototype.scale
@@ -96,6 +103,8 @@ export function App
     boxHeight: 200
     number: 100
     maxHeight: 40
+    perspective: true
+    sort: true
     flip: false
     uneven: 1
     right: false
@@ -104,7 +113,8 @@ export function App
   [characters, setCharacters] := createStore<Character[]>([])
   function randomize
     chars .= randomLayout params
-    chars = depthOrdering chars  # resets i too
+    if params.sort
+      chars = depthOrdering chars  # resets i too
     setCharacters reconcile chars
   onMount randomize
 
@@ -313,6 +323,12 @@ export function App
         <input type="checkbox" checked=params.blur onInput={onInput 'blur'}>
         Blur
       <br>
+      <label .group>
+        <input type="checkbox" checked=params.perspective onInput={onInput 'perspective'} {onChange}>
+        Perspective
+      <label .group>
+        <input type="checkbox" checked=params.sort onInput={onInput 'sort'} {onChange}>
+        Depth sort
       <label .group>
         {'Max height (camera angle): '}
         <input type="number" value=params.maxHeight onInput={onInput 'maxHeight'} {onChange}>

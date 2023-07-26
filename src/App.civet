@@ -95,7 +95,7 @@ export function App
     boxWidth: 400
     boxHeight: 200
     number: 100
-    maxHeight: 75
+    maxHeight: 40
     flip: false
     uneven: 1
     right: false

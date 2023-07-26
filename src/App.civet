@@ -64,7 +64,7 @@ function randomLayout(params: Parameters): Character[]
   for i of [0...params.number]
     name := choose[Math.floor Math.random() * choose.length]
     prototype := prototypes[name]
-    zFrac := Math.random() ** 3
+    zFrac .= Math.random() ** 3
     z .= zFrac ** 0.5 * (1 - zMin) + zMin
     height .= params.boxHeight * params.maxHeight/100
     height *= z if params.perspective
@@ -75,7 +75,7 @@ function randomLayout(params: Parameters): Character[]
         zFrac * yMax
       else
         Math.random() * yMax
-    z = y unless params.perspective
+    z = zFrac = y unless params.perspective
     if prototype.scale?  # align bottoms
       y += (1 - prototype.scale) * height
       height *= prototype.scale

@@ -261,117 +261,121 @@ export function App
             reader.readAsDataURL file
           */
       randomize()
+  function onClick(e: MouseEvent)
+    unless e.target!.className is 'prototypes'
+      e.stopPropagation()
 
   let svg: SVGSVGElement, download: HTMLAnchorElement, jsonInput: HTMLInputElement, path: SVGPathElement
-  <table style="width: 100%">
-    <tbody>
-      <tr>
-        <td style="text-align: left; vertical-align: middle">
-          <h1>Algorithmic Character Layout
-        <td style="text-align: right; vertical-align: middle">
-          <h2>by <a href="https://marielbass.com">Mariel&nbsp;Bass</a>, <a href="https://erikdemaine.org">Erik&nbsp;Demaine</a>, and <a href="http://martindemaine.org">Martin&nbsp;Demaine</a>
-  <div .prototypes ...dropzone.getRootProps()>
-    <input ...dropzone.getInputProps()>
-    <For each={Object.values prototypes}>
-      (prototype) =>
-        <img .prototype
-         .{if params.frequency[prototype.name] then 'active'}
-         src={prototype.url} height={100 * (prototype.scale ?? 1)}
-         title={prototype.name} onClick={[toggleFrequency, prototype.name]}
-         onContextMenu={[incrementFrequency, prototype.name]}>
-        <span .freq>{params.frequency[prototype.name]}
-    <Show when={Object.keys(prototypes).length} fallback={
-      <div .empty>To construct a layout, first drag your images here, or click to open file selector.
-    }>
-      <button onClick={=> uniformFrequency 1}>All
-      <button onClick={=> uniformFrequency 0}>None
-  <header>
-    <div .group>
-      <label>Random layout
-    <div .group>
-      <label>Min Z:
-      <input type="number" value=params.zMin onInput={onInput 'zMin'} {onChange}>
-      <input type="range" value=params.zMin onInput={onInput 'zMin'} {onChange} list="ticks">
-    <div .group>
-      <input type="checkbox" checked=params.blur onInput={onInput 'blur'}>
-      <label>Blur
-    <br>
-    <div .group>
-      <input type="number" value=params.boxWidth onInput={onInput 'boxWidth'} {onChange}>
-      &times;
-      <input type="number" value=params.boxHeight onInput={onInput 'boxHeight'} {onChange}>
-    <br>
-    <div .group>
-      <label>Characters:
-      <input type="number" value=params.number onInput={onInput 'number'} {onChange}>
-    <div .group>
-      <label>Max height (depth crush):
-      <input type="number" value=params.maxHeight onInput={onInput 'maxHeight'} {onChange}>
-      <input type="range" value=params.maxHeight onInput={onInput 'maxHeight'} {onChange} list="ticks">
-    <div .group>
-      <input type="checkbox" checked=params.flip onInput={onInput 'flip'}>
-      <label>Flip
-    <div .group>
-      <label>Unevenness:
-      <input type="number" value=params.uneven onInput={onInput 'uneven'} {onChange}>
-    <div .group>
-      <input type="checkbox" checked=params.right onInput={onInput 'right'} {onChange}>
-      <label>Right
-    <br>
-    <datalist #ticks>
-      <option value=0>
-      <option value=25>
-      <option value=50>
-      <option value=75>
-      <option value=100>
-    <div .group>
-      <button onClick={randomize}>Randomize
-    <div .group>
-      <button onClick={downloadSVG}>Download SVG
-    <div .group>
-      <button onClick={downloadJSON}>Download JSON
-    <div .group>
-      <input ref={jsonInput!} type="file" accept=".json"
-       style={display: 'none'} onInput={openJSON}>
-      <button onClick={=> jsonInput.click()}>Open JSON
-    <a .d-none ref={download!} style={display: 'none'}>
-  <svg ref={svg!} viewBox=viewBox()
-   onPointerMove=onPointerMove onPointerUp=onPointerUp>
-    <For each=characters>
-      (character) =>
-        function onPointerDown(e: PointerEvent)
-          drags[e.pointerId] =
-            i: character.i
-            dragOrigin: svgPoint svg, e
-            start: {x: character.x, y: character.y}
-          svg.setPointerCapture e.pointerId
-        function transform
-          let r: number
-          {x: characterX, y: characterY} .= character
-          boxFlip := params.flip
-          characterY = params.boxHeight - characterY if boxFlip
-          [
-            "translate(#{characterX} #{characterY})"
-            "translate(#{character.width/2} 0)"
-            if character.flip
-              "scale(-1 1)"
-            if boxFlip
-              "scale(1 -1)"
-            if character.vflip
-              "translate(0 #{character.height/2}) " +
-              "scale(1 -1) " +
-              "translate(0 #{-character.height/2})"
-            "translate(#{-character.width/2} 0)"
-          ]
-          .filter Boolean
-          .join ' '
-        function filter: string | undefined
-          filters .= []
-          filters.push "blur(#{character.blur}px)" if params.blur and character.blur?
-          filters.join ' '
-        <image data-i=character.i href=character.url
-         width=character.width height=character.height
-         transform=transform()
-         style={filter: filter(), visibility: if character.hidden then 'hidden'}
-         onPointerDown=onPointerDown
-        >
+  <div ...dropzone.getRootProps({onClick}) classList={drag: dropzone.isDragActive}>
+    <table style="width: 100%">
+      <tbody>
+        <tr>
+          <td style="text-align: left; vertical-align: middle">
+            <h1>Algorithmic Character Layout
+          <td style="text-align: right; vertical-align: middle">
+            <h2>by <a href="https://marielbass.com">Mariel&nbsp;Bass</a>, <a href="https://erikdemaine.org">Erik&nbsp;Demaine</a>, and <a href="http://martindemaine.org">Martin&nbsp;Demaine</a>
+    <div .prototypes>
+      <input ...dropzone.getInputProps()>
+      <For each={Object.values prototypes}>
+        (prototype) =>
+          <img .prototype
+          .{if params.frequency[prototype.name] then 'active'}
+          src={prototype.url} height={100 * (prototype.scale ?? 1)}
+          title={prototype.name} onClick={[toggleFrequency, prototype.name]}
+          onContextMenu={[incrementFrequency, prototype.name]}>
+          <span .freq>{params.frequency[prototype.name]}
+      <Show when={Object.keys(prototypes).length} fallback={
+        <div .empty>To construct a layout, first drag your images here, or click to open file selector.
+      }>
+        <button onClick={=> uniformFrequency 1}>All
+        <button onClick={=> uniformFrequency 0}>None
+    <header>
+      <div .group>
+        <label>Random layout
+      <div .group>
+        <label>Min Z:
+        <input type="number" value=params.zMin onInput={onInput 'zMin'} {onChange}>
+        <input type="range" value=params.zMin onInput={onInput 'zMin'} {onChange} list="ticks">
+      <div .group>
+        <input type="checkbox" checked=params.blur onInput={onInput 'blur'}>
+        <label>Blur
+      <br>
+      <div .group>
+        <input type="number" value=params.boxWidth onInput={onInput 'boxWidth'} {onChange}>
+        &times;
+        <input type="number" value=params.boxHeight onInput={onInput 'boxHeight'} {onChange}>
+      <br>
+      <div .group>
+        <label>Characters:
+        <input type="number" value=params.number onInput={onInput 'number'} {onChange}>
+      <div .group>
+        <label>Max height (depth crush):
+        <input type="number" value=params.maxHeight onInput={onInput 'maxHeight'} {onChange}>
+        <input type="range" value=params.maxHeight onInput={onInput 'maxHeight'} {onChange} list="ticks">
+      <div .group>
+        <input type="checkbox" checked=params.flip onInput={onInput 'flip'}>
+        <label>Flip
+      <div .group>
+        <label>Unevenness:
+        <input type="number" value=params.uneven onInput={onInput 'uneven'} {onChange}>
+      <div .group>
+        <input type="checkbox" checked=params.right onInput={onInput 'right'} {onChange}>
+        <label>Right
+      <br>
+      <datalist #ticks>
+        <option value=0>
+        <option value=25>
+        <option value=50>
+        <option value=75>
+        <option value=100>
+      <div .group>
+        <button onClick={randomize}>Randomize
+      <div .group>
+        <button onClick={downloadSVG}>Download SVG
+      <div .group>
+        <button onClick={downloadJSON}>Download JSON
+      <div .group>
+        <input ref={jsonInput!} type="file" accept=".json"
+         style={display: 'none'} onInput={openJSON}>
+        <button onClick={=> jsonInput.click()}>Open JSON
+      <a .d-none ref={download!} style={display: 'none'}>
+    <svg ref={svg!} viewBox=viewBox()
+    onPointerMove=onPointerMove onPointerUp=onPointerUp>
+      <For each=characters>
+        (character) =>
+          function onPointerDown(e: PointerEvent)
+            drags[e.pointerId] =
+              i: character.i
+              dragOrigin: svgPoint svg, e
+              start: {x: character.x, y: character.y}
+            svg.setPointerCapture e.pointerId
+          function transform
+            let r: number
+            {x: characterX, y: characterY} .= character
+            boxFlip := params.flip
+            characterY = params.boxHeight - characterY if boxFlip
+            [
+              "translate(#{characterX} #{characterY})"
+              "translate(#{character.width/2} 0)"
+              if character.flip
+                "scale(-1 1)"
+              if boxFlip
+                "scale(1 -1)"
+              if character.vflip
+                "translate(0 #{character.height/2}) " +
+                "scale(1 -1) " +
+                "translate(0 #{-character.height/2})"
+              "translate(#{-character.width/2} 0)"
+            ]
+            .filter Boolean
+            .join ' '
+          function filter: string | undefined
+            filters .= []
+            filters.push "blur(#{character.blur}px)" if params.blur and character.blur?
+            filters.join ' '
+          <image data-i=character.i href=character.url
+           width=character.width height=character.height
+           transform=transform()
+           style={filter: filter(), visibility: if character.hidden then 'hidden'}
+           onPointerDown=onPointerDown
+          >

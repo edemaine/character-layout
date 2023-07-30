@@ -10,7 +10,7 @@ interface Prototype
   width: number
   height: number
   scale?: number
-  file?: File
+  file?: Blob
 
 // Mapping from name to Prototype
 [prototypes, setPrototypes] := createStore<Record<string, Prototype>> {}
@@ -116,7 +116,31 @@ export function App
     if params.sort
       chars = depthOrdering chars  # resets i too
     setCharacters reconcile chars
-  onMount randomize
+  //onMount randomize
+
+  function addPrototype(file: Blob, optionalName?: string): Promise<void>
+    name := optionalName ?? (file as File).name ??
+      throw new Error "addPrototype should be given File or name"
+    new Promise (done) =>
+      url := URL.createObjectURL file
+      img := new Image
+      img.onload = =>
+        setPrototypes name, {url, file, name, img.width, img.height}
+        unless params.frequency[name]?
+          setParams 'frequency', name, 1
+        done undefined
+      img.src = url
+    /*
+      reader := new FileReader
+      reader.onload = =>
+        url := reader.result as string
+      reader.readAsDataURL file
+    */
+
+  fetch 'standing_umbrella.png'
+  .then (response) =>
+    await addPrototype await response.blob(), 'standing_umbrella.png'
+    randomize()
 
   function inputValue(input: HTMLInputElement)
     switch input.type
@@ -254,25 +278,10 @@ export function App
       await.allSettled
         for file of files
           continue unless file.type.match /^image\//
-          new Promise (done) =>
-            url := URL.createObjectURL file
-            img := new Image
-            img.onload = =>
-              setPrototypes file.name,
-                {url, file, file.name, img.width, img.height}
-              unless params.frequency[file.name]?
-                setParams 'frequency', file.name, 1
-              done undefined
-            img.src = url
-          /*
-            reader := new FileReader
-            reader.onload = =>
-              url := reader.result as string
-            reader.readAsDataURL file
-          */
+          addPrototype file
       randomize()
   function onClick(e: MouseEvent)
-    unless e.target!.className is 'prototypes'
+    unless (e.target! as HTMLElement).className is in ['prototypes', 'draghere']
       e.stopPropagation()
 
   let svg: SVGSVGElement, download: HTMLAnchorElement, jsonInput: HTMLInputElement, path: SVGPathElement
@@ -285,6 +294,14 @@ export function App
           <td style="text-align: right; vertical-align: middle">
             <h2>by <a href="https://marielbass.com">Mariel&nbsp;Bass</a>, <a href="https://erikdemaine.org">Erik&nbsp;Demaine</a>, and <a href="http://martindemaine.org">Martin&nbsp;Demaine</a>
     <div .prototypes>
+      <Show when={Object.keys(prototypes).length} fallback={
+        <div .draghere>To construct a layout, first drag your images here, or click to open file selector.
+      }>
+        <div .draghere>Drag your images here, or click to open file selector.
+          {' '}
+          <button onClick={(e) => e.stopPropagation(); uniformFrequency 1}>All
+          <button onClick={(e) => e.stopPropagation(); uniformFrequency 0}>None
+          <button onClick={(e) => e.stopPropagation(); setPrototypes reconcile {}}>Clear
       <input ...dropzone.getInputProps()>
       <For each={Object.values prototypes}>
         (prototype) =>
@@ -294,12 +311,6 @@ export function App
           title={prototype.name} onClick={[toggleFrequency, prototype.name]}
           onContextMenu={[incrementFrequency, prototype.name]}>
           <span .freq>{params.frequency[prototype.name]}
-      <Show when={Object.keys(prototypes).length} fallback={
-        <div .empty>To construct a layout, first drag your images here, or click to open file selector.
-      }>
-        <button onClick={(e) => e.stopPropagation(); uniformFrequency 1}>All
-        <button onClick={(e) => e.stopPropagation(); uniformFrequency 0}>None
-        <button onClick={(e) => e.stopPropagation(); setPrototypes reconcile {}}>Clear
     <header>
       <label .group>
         {'Characters: '}

@@ -408,3 +408,7 @@ export function App
           >
     <footer>
       <a href="https://github.com/edemaine/character-layout">Source code on GitHub</a>
+      {' | '}
+      <a href="https://erikdemaine.org/papers/Characters_BRIDGES2023/">Paper describing the algorithm
+      {' | '}
+      <a href="https://erikdemaine.org/curved/HangingOut/">Sculpture built from this software

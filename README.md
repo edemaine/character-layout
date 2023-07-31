@@ -1,7 +1,8 @@
 # Algorithmic Character Layout
 
 This software implements a simple algorithm for arranging a collection of
-images (“characters”) in a perspective layout that looks uniform.
+images (“characters”) in a perspective (or orthographic) layout
+that looks uniform.
 Randomness and tunable parameters make for varied layouts,
 with no repetition of a pattern.
 

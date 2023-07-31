@@ -259,9 +259,9 @@ export function App
     download.href = ''
     URL.revokeObjectURL url
   function downloadSVG
-    downloadFile writeSVG(), 'image/svg+xml', 'assemble.svg'
+    downloadFile writeSVG(), 'image/svg+xml', 'layout.svg'
   function downloadJSON
-    downloadFile writeJSON(), 'application/json', 'assemble.json'
+    downloadFile writeJSON(), 'application/json', 'layout.json'
   function openJSON
     return unless jsonInput.files?.length
     file := new FileReader

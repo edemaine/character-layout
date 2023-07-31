@@ -14,11 +14,11 @@ one built-in image included in the software.
 
 **Input image:** “Umbrella man” drawn by Mariel Bass
 
-<img src="public/standing_umbrella.png">
+![A man holding an umbrella](public/standing_umbrella.png)
 
 **Output layout:** 150 characters in 400×200, max height 40%
 
-<img src="example.jpg">
+![A perspective layout of 150 umbrella men](example.jpg)
 
 Upload your own images and make your own layouts!
 
@@ -36,7 +36,7 @@ curved-crease sculpture
 which was exhibited at the
 [Fitchburg Art Museum](https://fitchburgartmuseum.org/).
 
-![Photograph of Hanging Out sculpture with man standing next to it for scale](http://erikdemaine.org/curved/HangingOut/thumbs/DB4A6487_medium.jpg)
+![Photograph of Hanging Out sculpture with human standing next to it for scale](http://erikdemaine.org/curved/HangingOut/thumbs/DB4A6487_medium.jpg)
 
 ## Development
 
@@ -50,7 +50,8 @@ npm run dev
 
 Then open <http://localhost:3000/> in your browser for live development.
 
-Alternatively, you can build a deployable version in `dist` via the command
+Alternatively, you can build a deployable version in `dist`
+via the following command:
 
 ```bash
 npm run build

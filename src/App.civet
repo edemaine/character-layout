@@ -306,10 +306,10 @@ export function App
       <For each={Object.values prototypes}>
         (prototype) =>
           <img .prototype
-          .{if params.frequency[prototype.name] then 'active'}
-          src={prototype.url} height={100 * (prototype.scale ?? 1)}
-          title={prototype.name} onClick={[toggleFrequency, prototype.name]}
-          onContextMenu={[incrementFrequency, prototype.name]}>
+           .{if params.frequency[prototype.name] then 'active'}
+           src={prototype.url} height={100 * (prototype.scale ?? 1)}
+           title={prototype.name} onClick={[toggleFrequency, prototype.name]}
+           onContextMenu={[incrementFrequency, prototype.name]}>
           <span .freq>{params.frequency[prototype.name]}
     <header>
       <label .group>
@@ -356,18 +356,18 @@ export function App
         <option value=75>
         <option value=100>
       <div .group>
-        <button onClick={randomize}>Randomize
+        <button onClick=randomize>Randomize
       <div .group>
-        <button onClick={downloadSVG}>Download SVG
+        <button onClick=downloadSVG>Download SVG
       <div .group>
-        <button onClick={downloadJSON}>Download JSON
+        <button onClick=downloadJSON>Download JSON
       <div .group>
-        <input ref={jsonInput!} type="file" accept=".json"
-         style={display: 'none'} onInput={openJSON}>
+        <input ref=jsonInput! type="file" accept=".json"
+         style={display: 'none'} onInput=openJSON>
         <button onClick={=> jsonInput.click()}>Open JSON
-      <a .d-none ref={download!} style={display: 'none'}>
-    <svg ref={svg!} viewBox=viewBox()
-    onPointerMove=onPointerMove onPointerUp=onPointerUp>
+      <a .d-none ref=download! style={display: 'none'}>
+    <svg ref=svg! viewBox=viewBox()
+     onPointerMove=onPointerMove onPointerUp=onPointerUp>
       <For each=characters>
         (character) =>
           function onPointerDown(e: PointerEvent)

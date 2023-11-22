@@ -17,7 +17,7 @@
     "image-size": "1.0.2",
     "stylus": "0.62.0",
     "typescript": "5.3.2",
-    "vite": "4.0.4",
+    "vite": "4.4.11",
     "vite-plugin-civet": "0.2.8",
     "vite-plugin-solid": "2.7.2"
   },

@@ -1,16 +1,12 @@
 import { defineConfig, PluginOption } from 'vite'
 import solidPlugin from 'vite-plugin-solid'
-import civetPlugin from 'vite-plugin-civet'
+import civetPlugin from '@danielx/civet/vite'
 
 export default defineConfig({
   base: "./",
   plugins: [
-    solidPlugin(),
-    civetPlugin({
-      stripTypes: false,
-      outputExtension: 'tsx',
-      outputTransformerPlugin: 'solid',
-    }) as PluginOption,
+    civetPlugin({ts: "civet"}),
+    solidPlugin()
   ],
   server: {
     port: 3000,

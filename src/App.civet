@@ -1,7 +1,8 @@
 "civet coffeeComment coffeeEq coffeeInterpolation solid"
-{ createComputed, createEffect, createSignal, onMount, For, Setter, Show } from 'solid-js'
+{ onMount, For, Show } from 'solid-js'
 { createStore, reconcile } from 'solid-js/store'
 { createDropzone } from '@soorria/solid-dropzone'
+import 'attr-accept'  // workaround solid-dropzone issue
 
 // Prototype is an image that can be instantiated many times
 interface Prototype
@@ -84,8 +85,8 @@ function randomLayout(params: Parameters): Character[]
     x = 1 - x if params.right
     x *= (params.boxWidth - width)
     {...prototype, i, x, y, z, width, height,
-    flip: randomBool()
-    blur: (1-zFrac**0.5) * 0.5
+      flip: randomBool()
+      blur: (1-zFrac**0.5) * 0.5
     }
 
 function depthOrdering(chars: Character[]): Character[]
@@ -95,7 +96,7 @@ function depthOrdering(chars: Character[]): Character[]
   chars
 
 export function App
-  [params, setParams] := createStore<Parameters> {
+  [params, setParams] := createStore<Parameters>
     frequency: {}
     zMin: 10
     blur: false
@@ -108,7 +109,6 @@ export function App
     flip: false
     uneven: 1
     right: false
-  }
 
   [characters, setCharacters] := createStore<Character[]>([])
   function randomize
@@ -118,7 +118,7 @@ export function App
     setCharacters reconcile chars
   //onMount randomize
 
-  function addPrototype(file: Blob, optionalName?: string): Promise<void>
+  function addPrototype(file: Blob, optionalName?: string): Promise<undefined>
     name := optionalName ?? (file as File).name ??
       throw new Error "addPrototype should be given File or name"
     new Promise (done) =>

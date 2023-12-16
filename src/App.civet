@@ -51,6 +51,7 @@ interface Parameters
   perspective: boolean
   sort: boolean
   flip: boolean
+  cover: boolean
   uneven: number
   right: boolean
 
@@ -62,6 +63,7 @@ function randomLayout(params: Parameters): Character[]
     choose.push name for i of [0...freq]
   return [] unless choose.length
   zMin := params.zMin / 100
+  cover: number := +params.cover
   for i of [0...params.number]
     name := choose[Math.floor Math.random() * choose.length]
     prototype := prototypes[name]
@@ -70,12 +72,13 @@ function randomLayout(params: Parameters): Character[]
     height .= params.boxHeight * params.maxHeight/100
     height *= z if params.perspective
     width := height * prototype.width / prototype.height
-    yMax := params.boxHeight - height
+    yMax := params.boxHeight - height + cover * 2*height
     y .=
       if params.perspective
         zFrac * yMax
       else
         Math.random() * yMax
+    y -= cover * height
     z = zFrac = y unless params.perspective
     if prototype.scale?  # align bottoms
       y += (1 - prototype.scale) * height
@@ -83,7 +86,8 @@ function randomLayout(params: Parameters): Character[]
     x .= Math.random()
     x **= params.uneven
     x = 1 - x if params.right
-    x *= (params.boxWidth - width)
+    x *= (params.boxWidth - width + cover * 2*width)
+    x -= cover * width
     {...prototype, i, x, y, z, width, height,
       flip: randomBool()
       blur: (1-zFrac**0.5) * 0.5
@@ -107,6 +111,7 @@ export function App
     perspective: true
     sort: true
     flip: false
+    cover: false
     uneven: 1
     right: false
 
@@ -325,6 +330,9 @@ export function App
         <input type="number" value=params.boxWidth onInput={onInput 'boxWidth'} {onChange}>
         &times;
         <input type="number" value=params.boxHeight onInput={onInput 'boxHeight'} {onChange}>
+      <label .group>
+        <input type="checkbox" checked=params.cover onInput={onInput 'cover'} {onChange}>
+        Cover
       <div .group>
         <label>
           {'Unevenness: '}

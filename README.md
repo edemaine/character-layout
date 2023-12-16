@@ -37,7 +37,7 @@ curved-crease sculpture
 which was exhibited at the
 [Fitchburg Art Museum](https://fitchburgartmuseum.org/).
 
-![Photograph of Hanging Out sculpture with human standing next to it for scale](http://erikdemaine.org/curved/HangingOut/thumbs/DB4A6487_medium.jpg)
+![Photograph of Hanging Out sculpture with human standing next to it for scale](https://erikdemaine.org/curved/HangingOut/thumbs/DB4A6487_medium.jpg)
 
 ## Development
 

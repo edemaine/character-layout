@@ -229,7 +229,12 @@ export function App
        xmlns:xlink="http://www.w3.org/1999/xlink"
 
     """
-    .replace /\bhref=/g, 'xlink:href='
+    // Replace blob URLs with local filenames
+    .replace /\bhref=(["']).*?\1/g, ''
+    .replace /\bdata-i=["']?(\d+)["']?/g, (match, i) =>
+      character := characters[parseInt i, 10]
+      `xlink:href="${character.name}"`
+    // Replace blur filters
     .replace /\bstyle="filter:([^"]*)"/g, (filter) ->
       if blur := filter.match /blur\(([^()]+)px\)/
         blurs.push blur[1]
@@ -292,7 +297,7 @@ export function App
           <td style="text-align: left; vertical-align: middle">
             <h1>Algorithmic Character Layout
           <td style="text-align: right; vertical-align: middle">
-            <h2>by <a href="https://marielbass.com">Mariel&nbsp;Bass</a>, <a href="https://erikdemaine.org">Erik&nbsp;Demaine</a>, and <a href="http://martindemaine.org">Martin&nbsp;Demaine</a>
+            <h2>by <a href="https://marielbass.com">Mariel&nbsp;Bass</a>, <a href="https://erikdemaine.org">Erik&nbsp;Demaine</a>, and <a href="https://martindemaine.org">Martin&nbsp;Demaine</a>
     <div .prototypes>
       <Show when={Object.keys(prototypes).length} fallback={
         <div .draghere>To construct a layout, first drag your images here, or click to open file selector.

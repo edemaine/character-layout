@@ -10,7 +10,6 @@ interface Prototype
   url: string
   width: number
   height: number
-  scale?: number
   file?: Blob
 
 // Mapping from name to Prototype
@@ -42,6 +41,7 @@ function svgPoint(svg: SVGSVGElement, e: PointerEvent, matrix: SVGGraphicsElemen
 interface Parameters
   // random layout
   frequency: Record<string,number>
+  scale: Record<string,number>
   zMin: number
   blur: boolean
   boxWidth: number
@@ -117,8 +117,8 @@ function randomLayout(params: Parameters): Character[]
         Math.random() * yMax
     y -= cover * height
     z = zFrac = y unless params.perspective
-    if prototype.scale? != 100  // align bottoms
-      scale := prototype.scale / 100
+    if params.scale[name]? != 100  // align bottoms
+      scale := params.scale[name] / 100
       y += (1 - scale) * height
       height *= scale
     x .= Math.random()
@@ -153,6 +153,7 @@ function depthOrdering(chars: Character[]): Character[]
 export function App
   [params, setParams] := createStore<Parameters>
     frequency: {}
+    scale: {}
     zMin: 10
     blur: false
     boxWidth: 400
@@ -249,15 +250,15 @@ export function App
     freq++
     setParams 'frequency', name, freq
     onChange()
-  function onScale(name: string, e: Event)
-    target := e.currentTarget as HTMLInputElement
-    setPrototypes name, 'scale', target.valueAsNumber
   function uniformFrequency(freq: number)
     setParams 'frequency', Object.fromEntries(
       for name in prototypes
         [name, freq] as const
     )
     onChange()
+  function onScale(name: string, e: Event)
+    target := e.currentTarget as HTMLInputElement
+    setParams 'scale', name, target.valueAsNumber
 
   function findCharacter: number | undefined
     elt := document.elementFromPoint lastMouse.x, lastMouse.y
@@ -373,12 +374,13 @@ export function App
           <.prototype>
             <img .prototype
              .{if params.frequency[prototype.name] then 'active'}
-             src={prototype.url} height={prototype.scale ?? 100}
-             title={prototype.name} onClick=[toggleFrequency, prototype.name]
+             src=prototype.url height={params.scale[prototype.name] ?? 100}
+             title=prototype.name onClick=[toggleFrequency, prototype.name]
              onContextMenu={[incrementFrequency, prototype.name]}>
-            <input .vertical type="range" value={prototype.scale ?? 100}
+            <input .vertical type="range"
+             value={params.scale[prototype.name] ?? 100}
              onInput=[onScale, prototype.name] {onChange}
-             title="Scale character relative to other characters">
+             title=`Scale character relative to other characters: ${params.scale[prototype.name] ?? 100}%`>
             <span .freq>{params.frequency[prototype.name]}
     <header>
       <label .group title="Number of images (characters) to place">

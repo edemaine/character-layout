@@ -322,42 +322,42 @@ export function App
            onContextMenu={[incrementFrequency, prototype.name]}>
           <span .freq>{params.frequency[prototype.name]}
     <header>
-      <label .group>
+      <label .group title="Number of images (characters) to place">
         {'Characters: '}
         <input type="number" value=params.number onInput={onInput 'number'} {onChange}>
-      <label .group>
+      <label .group title="Width and height of output area">
         {'Dimensions: '}
         <input type="number" value=params.boxWidth onInput={onInput 'boxWidth'} {onChange}>
         &times;
         <input type="number" value=params.boxHeight onInput={onInput 'boxHeight'} {onChange}>
-      <label .group>
+      <label .group title="Allow images to spill outside output area, to fill entire area">
         <input type="checkbox" checked=params.cover onInput={onInput 'cover'} {onChange}>
         Cover
       <div .group>
-        <label>
+        <label title="Exponent c for distribution of x coordinate (x = uniform^c), putting more characters to the left if >1">
           {'Unevenness: '}
           <input type="number" value=params.uneven onInput={onInput 'uneven'} {onChange}>
-        <label>
+        <label title="Flip horizontally so more characters are on the right instead of the left">
           <input type="checkbox" checked=params.right onInput={onInput 'right'} {onChange}>
           Right
-      <label .group>
+      <label .group title="Flip everything upside-down">
         <input type="checkbox" checked=params.flip onInput={onInput 'flip'}>
         Flip
-      <label .group>
+      <label .group title="Blur farther-back images (only in perspective mode)">
         <input type="checkbox" checked=params.blur onInput={onInput 'blur'}>
         Blur
       <br>
-      <label .group>
+      <label .group title="Make farther-back images smaller">
         <input type="checkbox" checked=params.perspective onInput={onInput 'perspective'} {onChange}>
         Perspective
-      <label .group>
+      <label .group title="Put farther-back images behind those in front/bottom">
         <input type="checkbox" checked=params.sort onInput={onInput 'sort'} {onChange}>
         Depth sort
-      <label .group>
+      <label .group title="Height of a frontmost character, as a percentage of the output area's height. Lower values simulate a higher camera angle.">
         {'Max height (camera angle): '}
         <input type="number" value=params.maxHeight onInput={onInput 'maxHeight'} {onChange}>
         <input type="range" value=params.maxHeight onInput={onInput 'maxHeight'} {onChange} list="ticks">
-      <label .group>
+      <label .group title="How far back a character can be, as a percentage. Increasing this reduces the perspective effect.">
         {'Min Z: '}
         <input type="number" value=params.zMin onInput={onInput 'zMin'} {onChange}>
         <input type="range" value=params.zMin onInput={onInput 'zMin'} {onChange} list="ticks">
@@ -368,13 +368,13 @@ export function App
         <option value=50>
         <option value=75>
         <option value=100>
-      <div .group>
+      <div .group title="Place all characters again randomly">
         <button onClick=randomize>Randomize
-      <div .group>
+      <div .group title="Download an SVG with the current output. Put in the same directory as your images.">
         <button onClick=downloadSVG>Download SVG
-      <div .group>
+      <div .group title="Download a JSON with the current settings and character layout, so you can reload with this software in the future">
         <button onClick=downloadJSON>Download JSON
-      <div .group>
+      <div .group title="Load a previously downloaded JSON from this software, restoring the settings and character layout">
         <input ref=jsonInput! type="file" accept=".json"
          style={display: 'none'} onInput=openJSON>
         <button onClick={=> jsonInput.click()}>Open JSON

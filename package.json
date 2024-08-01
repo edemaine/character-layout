@@ -10,7 +10,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@danielx/civet": "0.6.57",
+    "@danielx/civet": "0.7.19",
     "@rollup/pluginutils": "5.0.5",
     "@types/node": "20.9.4",
     "cheerio": "1.0.0-rc.12",

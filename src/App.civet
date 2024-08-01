@@ -1,5 +1,5 @@
 "civet coffeeComment coffeeEq coffeeInterpolation solid"
-{ onMount, For, Show } from 'solid-js'
+{ createSignal, onMount, For, Show } from 'solid-js'
 { createStore, reconcile } from 'solid-js/store'
 { createDropzone } from '@soorria/solid-dropzone'
 import 'attr-accept'  // workaround solid-dropzone issue
@@ -54,6 +54,42 @@ interface Parameters
   cover: boolean
   uneven: number
   right: boolean
+  separation: number
+
+class Collision
+  grid: Map<string, Character[]>
+  separation: number
+  @(@separation)
+    @grid = new Map
+  add(character: Character): void
+    return unless @separation
+    x := Math.round character.x / @separation
+    y := Math.round character.y / @separation
+    key := `${x},${y}`
+    if @grid.has key
+      @grid.get(key)!.push character
+    else
+      @grid.set key, [character]
+  has(character: Character): boolean
+    return false unless @separation
+    xMid := Math.round character.x / @separation
+    yMid := Math.round character.y / @separation
+    factor := @separation / 100
+    for x of [xMid-1..xMid+1]
+      for y of [yMid-1..yMid+1]
+        if chars := @grid.get `${x},${y}`
+          for each char of chars
+            if ((and)
+              character.name is char.name
+              character.flip xnor char.flip
+              character.vflip xnor char.vflip
+              Math.abs(character.x - char.x) < (character.width + char.width)/2 * factor
+              Math.abs(character.y - char.y) < (character.height + char.height)/2 * factor
+            )
+              return true
+    false
+
+maxTries := 100
 
 function randomLayout(params: Parameters): Character[]
   choose := []
@@ -64,7 +100,10 @@ function randomLayout(params: Parameters): Character[]
   return [] unless choose.length
   zMin := params.zMin / 100
   cover: number := +params.cover
-  for i of [0...params.number]
+  collision := new Collision params.separation
+  tries .= 0
+
+  for let i of [0...params.number]
     name := choose[Math.floor Math.random() * choose.length]
     prototype := prototypes[name]
     zFrac .= Math.random() ** 3
@@ -88,10 +127,24 @@ function randomLayout(params: Parameters): Character[]
     x = 1 - x if params.right
     x *= (params.boxWidth - width + cover * 2*width)
     x -= cover * width
-    {...prototype, i, x, y, z, width, height,
+    character := {...prototype, i, x, y, z, width, height,
       flip: randomBool()
       blur: (1-zFrac**0.5) * 0.5
     }
+
+    // Retry on collision
+    if collision.has character
+      tries++
+      if tries < maxTries
+        i--
+      else
+        tries = 0
+      continue
+    else
+      tries = 0
+      collision.add character
+
+    character
 
 function depthOrdering(chars: Character[]): Character[]
   chars.sort (a, b) => a.z - b.z
@@ -114,13 +167,16 @@ export function App
     cover: false
     uneven: 1
     right: false
+    separation: 0
 
   [characters, setCharacters] := createStore<Character[]>([])
+  [actual, setActual] := createSignal<number?>()
   function randomize
     chars .= randomLayout params
     if params.sort
       chars = depthOrdering chars  # resets i too
     setCharacters reconcile chars
+    setActual if chars.length != params.number then chars.length
   //onMount randomize
 
   function addPrototype(file: Blob, optionalName?: string): Promise<undefined>
@@ -325,6 +381,8 @@ export function App
       <label .group title="Number of images (characters) to place">
         {'Characters: '}
         <input type="number" value=params.number onInput={onInput 'number'} {onChange}>
+        <Show when=actual()>
+          <span .actual title="Actual number of placed characters, because of required separation">Actual: {actual()}
       <label .group title="Width and height of output area">
         {'Dimensions: '}
         <input type="number" value=params.boxWidth onInput={onInput 'boxWidth'} {onChange}>
@@ -361,6 +419,10 @@ export function App
         {'Min Z: '}
         <input type="number" value=params.zMin onInput={onInput 'zMin'} {onChange}>
         <input type="range" value=params.zMin onInput={onInput 'zMin'} {onChange} list="ticks">
+      <label .group title="Minimum separation between identical images, as a percentage of image's width and height">
+        {'Separation: '}
+        <input type="number" value=params.separation onInput={onInput 'separation'} {onChange}>
+        <input type="range" value=params.separation onInput={onInput 'separation'} {onChange} list="ticks">
       <br>
       <datalist #ticks>
         <option value=0>

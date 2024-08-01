@@ -263,6 +263,9 @@ export function App
         [name, freq] as const
     )
     onChange()
+  function removeCharacter(name: string)
+    setPrototypes name, undefined!
+    onChange()
   function onScale(name: string, e: Event)
     target := e.currentTarget as HTMLInputElement
     setParams 'scale', name, target.valueAsNumber
@@ -397,6 +400,8 @@ export function App
                title="Decrease this character's relative frequency">&minus;
               <button onClick=[toggleFrequency, prototype.name]
                title="Toggle whether this character occurs at all">0
+              <button onClick=[removeCharacter, prototype.name]
+               title="Remove this character completely">&times;
     <header>
       <label .group title="Number of images (characters) to place">
         {'Characters: '}

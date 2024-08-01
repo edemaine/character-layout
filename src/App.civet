@@ -250,6 +250,13 @@ export function App
     freq++
     setParams 'frequency', name, freq
     onChange()
+  function decrementFrequency(name: string, e: MouseEvent)
+    e.preventDefault()
+    freq .= params.frequency[name]
+    freq--
+    freq = 0 if freq < 0
+    setParams 'frequency', name, freq
+    onChange()
   function uniformFrequency(freq: number)
     setParams 'frequency', Object.fromEntries(
       for name in prototypes
@@ -381,7 +388,15 @@ export function App
              value={params.scale[prototype.name] ?? 100}
              onInput=[onScale, prototype.name] {onChange}
              title=`Scale character relative to other characters: ${params.scale[prototype.name] ?? 100}%`>
-            <span .freq>{params.frequency[prototype.name]}
+            <.freq>
+              <button onClick=[incrementFrequency, prototype.name]
+               title="Increase this character's relative frequency">+
+              <span title="Relative frequency of occurrence for this character">
+                {params.frequency[prototype.name]}
+              <button onClick=[decrementFrequency, prototype.name]
+               title="Decrease this character's relative frequency">&minus;
+              <button onClick=[toggleFrequency, prototype.name]
+               title="Toggle whether this character occurs at all">0
     <header>
       <label .group title="Number of images (characters) to place">
         {'Characters: '}

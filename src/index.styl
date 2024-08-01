@@ -43,11 +43,26 @@ image:hover
   .draghere
     font-size: x-large
     margin-bottom: 0.5rem
+div.prototype
+  display: inline-flex
+  align-items: center
+  > input[type="range"]
+    height: 110px
+    margin-inline: 0
+  margin-right: 0.5rem
 img.prototype
+  align-self: flex-end
   margin: 0.1rem
   border: dashed orange
   &.active
     border: solid rgb(154, 255, 154)
+.freq
+  display: flex
+  flex-direction: column
+  align-items: center
+  > button
+    padding: 0px
+    margin-block: 1px
 
 // https://stackoverflow.com/a/15935838/7797661
 input[type=range].vertical

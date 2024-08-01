@@ -117,9 +117,10 @@ function randomLayout(params: Parameters): Character[]
         Math.random() * yMax
     y -= cover * height
     z = zFrac = y unless params.perspective
-    if prototype.scale?  // align bottoms
-      y += (1 - prototype.scale) * height
-      height *= prototype.scale
+    if prototype.scale? != 100  // align bottoms
+      scale := prototype.scale / 100
+      y += (1 - scale) * height
+      height *= scale
     x .= Math.random()
     x **= params.uneven
     x = 1 - x if params.right
@@ -248,6 +249,9 @@ export function App
     freq++
     setParams 'frequency', name, freq
     onChange()
+  function onScale(name: string, e: Event)
+    target := e.currentTarget as HTMLInputElement
+    setPrototypes name, 'scale', target.valueAsNumber
   function uniformFrequency(freq: number)
     setParams 'frequency', Object.fromEntries(
       for name in prototypes
@@ -366,12 +370,16 @@ export function App
       <input ...dropzone.getInputProps()>
       <For each={Object.values prototypes}>
         (prototype) =>
-          <img .prototype
-           .{if params.frequency[prototype.name] then 'active'}
-           src={prototype.url} height={100 * (prototype.scale ?? 1)}
-           title={prototype.name} onClick={[toggleFrequency, prototype.name]}
-           onContextMenu={[incrementFrequency, prototype.name]}>
-          <span .freq>{params.frequency[prototype.name]}
+          <.prototype>
+            <img .prototype
+             .{if params.frequency[prototype.name] then 'active'}
+             src={prototype.url} height={prototype.scale ?? 100}
+             title={prototype.name} onClick=[toggleFrequency, prototype.name]
+             onContextMenu={[incrementFrequency, prototype.name]}>
+            <input .vertical type="range" value={prototype.scale ?? 100}
+             onInput=[onScale, prototype.name] {onChange}
+             title="Scale character relative to other characters">
+            <span .freq>{params.frequency[prototype.name]}
     <header>
       <label .group title="Number of images (characters) to place">
         {'Characters: '}

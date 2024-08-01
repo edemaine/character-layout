@@ -43,8 +43,16 @@ image:hover
   .draghere
     font-size: x-large
     margin-bottom: 0.5rem
-.prototype
+img.prototype
   margin: 0.1rem
   border: dashed orange
   &.active
     border: solid rgb(154, 255, 154)
+
+// https://stackoverflow.com/a/15935838/7797661
+input[type=range].vertical
+  writing-mode: vertical-lr
+  direction: rtl
+  appearance: slider-vertical
+  width: 16px
+  vertical-align: bottom

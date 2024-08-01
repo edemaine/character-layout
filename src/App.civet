@@ -375,9 +375,12 @@ export function App
       }>
         <div .draghere>Drag your images here, or click to open file selector.
           {' '}
-          <button onClick={(e) => e.stopPropagation(); uniformFrequency 1}>All
-          <button onClick={(e) => e.stopPropagation(); uniformFrequency 0}>None
-          <button onClick={(e) => e.stopPropagation(); setPrototypes reconcile {}}>Clear
+          <button onClick={(e) => e.stopPropagation(); uniformFrequency 1}
+           title="Set all characters' relative frequency to 1 (uniform distribution)">All
+          <button onClick={(e) => e.stopPropagation(); uniformFrequency 0}
+           title="Set all characters to not appear (frequency 0)">None
+          <button onClick={(e) => e.stopPropagation(); setPrototypes reconcile {}}
+           title="Remove all characters completely">Clear
       <input ...dropzone.getInputProps()>
       <For each={Object.values prototypes}>
         (prototype) =>

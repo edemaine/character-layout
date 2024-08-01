@@ -91,8 +91,7 @@ class Collision
 
 function randomLayout(params: Parameters): Character[]
   choose := []
-  for [name, freq] of Object.entries params.frequency
-    // CIVET: want for name, freq in params.frequency
+  for name, freq in params.frequency
     continue unless name in prototypes
     choose.push name for i of [0...freq]
   return [] unless choose.length
@@ -147,8 +146,7 @@ function randomLayout(params: Parameters): Character[]
 
 function depthOrdering(chars: Character[]): Character[]
   chars.sort (a, b) => a.z - b.z
-  chars[i].i = i for i of [0...chars.length]
-  // CIVET: want `for char, i of chars`
+  char.i = i for each char, i of chars
   chars
 
 export function App
@@ -303,9 +301,7 @@ export function App
         console.warn "Unrecognized filter: #{filter}"
         ''
     filters .= ''
-    for blurIndex of [0...blurs.length]
-      blur := blurs[blurIndex]
-      // CIVET: want for blur, blurIndex of blurs
+    for each blur, blurIndex of blurs
       filters += """
         <filter id="blur#{blurIndex}" x="0" y="0" width="100%" height="100%">
           <feGaussianBlur in="SourceGraphic" stdDeviation="#{blur}"/>

@@ -469,8 +469,7 @@ export function App
          style={display: 'none'} onInput=openJSON>
         <button onClick={=> jsonInput.click()}>Open JSON
       <a .d-none ref=download! style={display: 'none'}>
-    <svg ref=svg! viewBox=viewBox()
-     onPointerMove=onPointerMove onPointerUp=onPointerUp>
+    <svg ref=svg! viewBox=viewBox() {onPointerMove, onPointerUp}>
       <For each=characters>
         (character) =>
           function onPointerDown(e: PointerEvent)
@@ -507,7 +506,7 @@ export function App
            width=character.width height=character.height
            transform=transform()
            style={filter: filter(), visibility: if character.hidden then 'hidden'}
-           onPointerDown=onPointerDown
+           {onPointerDown}
           >
     <footer>
       <a href="https://github.com/edemaine/character-layout">Source code on GitHub</a>

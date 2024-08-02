@@ -99,50 +99,47 @@ function randomLayout(params: Parameters): Character[]
   cover: number := +params.cover
   collision := new Collision params.separation
   tries .= 0
-  maxTries := Math.max(100, params.number)
+  maxTries := Math.max 100, 5*params.number
 
-  for let i of [0...params.number]
-    name := choose[Math.floor Math.random() * choose.length]
-    prototype := prototypes[name]
-    zFrac .= Math.random() ** 3
-    z .= zFrac ** 0.5 * (1 - zMin) + zMin
-    height .= params.boxHeight * params.maxHeight/100
-    height *= z if params.perspective
-    width := height * prototype.width / prototype.height
-    yMax := params.boxHeight - height + cover * 2*height
-    y .=
-      if params.perspective
-        zFrac * yMax
-      else
-        Math.random() * yMax
-    y -= cover * height
-    z = zFrac = y unless params.perspective
-    if params.scale[name]? != 100  // align bottoms
-      scale := params.scale[name] / 100
-      y += (1 - scale) * height
-      height *= scale
-    x .= Math.random()
-    x **= params.uneven
-    x = 1 - x if params.right
-    x *= (params.boxWidth - width + cover * 2*width)
-    x -= cover * width
-    character := {...prototype, i, x, y, z, width, height,
-      flip: randomBool()
-      blur: (1-zFrac**0.5) * 0.5
-    }
-
-    // Retry on collision
-    if collision.has character
-      tries++
-      if tries < maxTries
-        i--
-      else
-        tries = 0
-      continue
-    else
-      tries = 0
+  for i of [0...params.number]
+    let character?: Character
+    for tries of [0...maxTries]
+      name := choose[Math.floor Math.random() * choose.length]
+      prototype := prototypes[name]
+      zFrac .= Math.random() ** 3
+      z .= zFrac ** 0.5 * (1 - zMin) + zMin
+      height .= params.boxHeight * params.maxHeight/100
+      height *= z if params.perspective
+      width := height * prototype.width / prototype.height
+      yMax := params.boxHeight - height + cover * 2*height
+      y .=
+        if params.perspective
+          zFrac * yMax
+        else
+          Math.random() * yMax
+      y -= cover * height
+      z = zFrac = y unless params.perspective
+      if params.scale[name]? != 100  // align bottoms
+        scale := params.scale[name] / 100
+        y += (1 - scale) * height
+        height *= scale
+      x .= Math.random()
+      x **= params.uneven
+      x = 1 - x if params.right
+      x *= (params.boxWidth - width + cover * 2*width)
+      x -= cover * width
+      character = {...prototype, i, x, y, z, width, height,
+        flip: randomBool()
+        blur: (1-zFrac**0.5) * 0.5
+      }
+      // Retry on collision
+      if collision.has character
+        character = undefined
+        continue
       collision.add character
-
+      break
+    // If we fail to place after maxTries, give up completely
+    break unless character?
     character
 
 function depthOrdering(chars: Character[]): Character[]
